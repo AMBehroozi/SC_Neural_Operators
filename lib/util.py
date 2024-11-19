@@ -49,6 +49,24 @@ def MHPI():
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
+def calculate_metrics(predictions, targets):
+   """Calculate RMSE, R², L2, relative L2, and max L1 errors"""
+   predictions = predictions.float()
+   targets = targets.float()
+   
+   rmse = torch.sqrt(torch.mean((predictions - targets) ** 2))
+   
+   target_mean = torch.mean(targets)
+   ss_tot = torch.sum((targets - target_mean) ** 2) 
+   ss_res = torch.sum((targets - predictions) ** 2)
+   r2 = 1 - ss_res / ss_tot
+   
+   l2 = torch.norm(predictions - targets, p=2)
+   rel_l2 = l2 / torch.norm(targets, p=2)
+   max_l1 = torch.max(torch.abs(predictions - targets))
+   
+   return rmse.item(), r2.item(), l2.item(), rel_l2.item(), max_l1.item()
+
 # Function to calculate RMSE
 def calculate_rmse(predictions, targets):
     """

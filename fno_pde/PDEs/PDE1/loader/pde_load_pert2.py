@@ -34,10 +34,8 @@ from fno_pde.PDEs.PDE1.pde1 import create_and_save_dataset
 from fno_pde.PDEs.PDE1.pde1 import skewed_gaussian_fixed_range
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-# 
-
-Operator = 'FNO'    # PMO, CNO, DeepONet
-enable_ig_loss = True
+Operator = 'CNO'    # PMO, CNO, DeepONet
+enable_ig_loss = False
 label = 'SC_' + Operator if enable_ig_loss else Operator
 
 if (enable_ig_loss == False):
