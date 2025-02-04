@@ -18,7 +18,7 @@ sys.path.append("../../")
 sys.path.append("../../../")
 sys.path.append("../../../../")
 
-from lib.util import MHPI, calculate_rmse, calculate_r2
+from lib.util import MHPI, calculate_rmse, calculate_r2, calculate_metrics
 from lib.utiltools import loss_live_plot, GaussianRandomFieldGenerator, generate_batch_parameters, AutomaticWeightedLoss, plot_losses_from_excel
 from lib.DerivativeComputer import batchJacobian_AD
 
@@ -149,24 +149,77 @@ batch_u_out = torch.cat(batch_u_out_list, dim=0)
 du_dparam_true = torch.cat(du_dparam_true_list, dim=0)
 
 
-RMSE_Grads = torch.zeros(6)  # Assuming RMSE for each component, storing in a tensor
-R2_Grads = torch.zeros(6)  # Storing R² for each component
+# RMSE_Grads = torch.zeros(6)  # Assuming RMSE for each component, storing in a tensor
+# R2_Grads = torch.zeros(6)  # Storing R² for each component
 
-for i in range(6):
-    predictions = du_dp[:, :, :, i, 0].cpu().detach()
-    true_values = du_dparam_true[:, :, T_in:, i, 0].cpu().detach()
-    RMSE_Grads[i] = calculate_rmse(predictions, true_values)
-    R2_Grads[i] = calculate_r2(predictions, true_values)
-
-
-RMSE_U = calculate_rmse(U_pred, batch_u_out)
-R2_U = calculate_r2(U_pred, batch_u_out)
-print(f'Mode:{label}')
+# for i in range(6):
+#     predictions = du_dp[:, :, :, i, 0].cpu().detach()
+#     true_values = du_dparam_true[:, :, T_in:, i, 0].cpu().detach()
+#     RMSE_Grads[i] = calculate_rmse(predictions, true_values)
+#     R2_Grads[i] = calculate_r2(predictions, true_values)
 
 
-print(f'R2 state value :{R2_U:.5f}')
-for i in range(6):
-    print(f'R2 du/dp{i+1}: {R2_Grads[i].item():.5f}')
+# RMSE_U = calculate_rmse(U_pred, batch_u_out)
+# R2_U = calculate_r2(U_pred, batch_u_out)
+# print(f'Mode:{label}')
+
+
+# print(f'R2 state value :{R2_U:.5f}')
+# for i in range(6):
+#     print(f'R2 du/dp{i+1}: {R2_Grads[i].item():.5f}')
+
+parameter_size = 6
+RMSE_Grads = torch.zeros(parameter_size)
+R2_Grads = torch.zeros(parameter_size)  
+L2_Grads = torch.zeros(parameter_size)
+RelL2_Grads = torch.zeros(parameter_size) 
+MaxL1_Grads = torch.zeros(parameter_size)
+
+for i in range(parameter_size):
+   predictions = du_dp[:, :, :, i, 0].cpu().detach()
+   true_values = du_dparam_true[:, :, T_in:, i, 0].cpu().detach()
+   RMSE_Grads[i], R2_Grads[i], L2_Grads[i], RelL2_Grads[i], MaxL1_Grads[i] = calculate_metrics(predictions, true_values)
+
+RMSE_U, R2_U, L2_U, RelL2_U, MaxL1_U = calculate_metrics(U_pred, batch_u_out)
+
+# Calculate mean metrics for Jacobian
+mean_R2 = torch.mean(R2_Grads)
+mean_RMSE = torch.mean(RMSE_Grads)
+mean_L2 = torch.mean(L2_Grads)
+mean_RelL2 = torch.mean(RelL2_Grads)
+mean_MaxL1 = torch.mean(MaxL1_Grads)
+
+print(f"\n{'='*50}")
+print(f"Mode: {Mode}")
+print(f"{'='*50}")
+
+print("\nState Value Metrics:")
+print(f"{'='*20}")
+print(f"R²      : {R2_U:.5f}")
+print(f"RMSE    : {RMSE_U:.5f}")
+print(f"L2      : {L2_U:.5f}")
+print(f"Rel L2  : {RelL2_U:.5f}")
+print(f"Max L1  : {MaxL1_U:.5f}")
+
+print("\nMean Jacobian Metrics:")
+print(f"{'='*20}")
+print(f"R²      : {mean_R2:.5f}")
+print(f"RMSE    : {mean_RMSE:.5f}")
+print(f"L2      : {mean_L2:.5f}")
+print(f"Rel L2  : {mean_RelL2:.5f}")
+print(f"Max L1  : {mean_MaxL1:.5f}")
+
+print("\nJacobian Metrics by Parameter:")
+print(f"{'='*20}")
+for i in range(parameter_size):
+   print(f"\nParameter {i+1}:")
+   print(f"R²      : {R2_Grads[i]:.5f}")
+   print(f"RMSE    : {RMSE_Grads[i]:.5f}")
+   print(f"L2      : {L2_Grads[i]:.5f}")
+   print(f"Rel L2  : {RelL2_Grads[i]:.5f}")
+   print(f"Max L1  : {MaxL1_Grads[i]:.5f}")
+print(f"\n{'='*50}\n")
+
 
 # In[15]:
 sample_idx = 64  

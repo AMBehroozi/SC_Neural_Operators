@@ -191,16 +191,14 @@ for ep in outer_loop:
             Jacobian = batchJacobian_AD(state_tensor.reshape(N, num_samples_x * num_samples_t), batch_parameters, graphed=True, batchx=True)
             du_dp[..., i] = Jacobian.reshape(N, num_samples_x, num_samples_t, model.parameter_size)
         
-        du_dparam_true_selected = du_dparam_true[:, :, T_in:, :, :][:, random_indices_x, :, :, :][:, :, random_indices_t, :, :]    
+            
 
-        ig_loss_list = criterion_1(du_dp, du_dparam_true_selected)
+        ig_loss_list = []
+        for i in range(model.parameter_size):
+            true_grads = du_dparam_true[:, :, T_in:, :, :][:, random_indices_x, :, :, :][:, :, random_indices_t, :, :][:, :, :, i, :]
+            ig_loss_individuals = criterion_1(du_dp[:, :, :, i, :], true_grads)
 
-        # ig_loss_list = []
-        # for i in range(model.parameter_size):
-        #     true_grads = du_dparam_true[:, :, T_in:, :, :][:, random_indices_x, :, :, :][:, :, random_indices_t, :, :][:, :, :, i, :]
-        #     ig_loss_individuals = criterion_1(du_dp[:, :, :, i, :], true_grads)
-
-        #     ig_loss_list.append(ig_loss_individuals)
+            ig_loss_list.append(ig_loss_individuals)
 
 
         # data , data+ig , data + eq , data + ig + eq
@@ -214,10 +212,10 @@ for ep in outer_loop:
         
         # Data + IG
         if ((enable_ig_loss == True) and (enable_eq_loss == False)):
-            loss = awl(data_loss, ig_loss_list)
+            loss = awl(data_loss, *[x for x in ig_loss_list])
             coieffs = awl.params.data.clone().detach()
             fnoloss =  coieffs[0].item() * data_loss
-            ig_loss = (coieffs[1].item() * ig_loss_list)
+            ig_loss = sum(coieffs[i+1] * ig_loss_list[i] for i in range(len(ig_loss_list)))
 
         # Data + Eq
         if ((enable_ig_loss == False) and (enable_eq_loss == True)):

@@ -18,7 +18,7 @@ sys.path.append("../../")
 sys.path.append("../../../")
 sys.path.append("../../../../")
 
-from lib.util import MHPI, calculate_rmse, calculate_r2, count_parameters
+from lib.util import MHPI, calculate_rmse, calculate_r2, count_parameters, calculate_metrics
 from lib.utiltools import loss_live_plot, GaussianRandomFieldGenerator, generate_batch_parameters, AutomaticWeightedLoss, plot_losses_from_excel
 from lib.DerivativeComputer import batchJacobian_AD
 
@@ -31,7 +31,7 @@ from models.MultiWaveletConv_2d import MWNO2d
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-Operator = 'DeepONet'    # PMO, CNO, DeepONet
+Operator = 'FNO'    # PMO, CNO, DeepONet
 enable_ig_loss = False
 label = 'SC_' + Operator if enable_ig_loss else Operator
 
@@ -144,25 +144,74 @@ U_pred = torch.cat(U_pred_list, dim=0)
 du_dp = torch.cat(du_dp_list, dim=0)
 batch_u_out = torch.cat(batch_u_out_list, dim=0)
 du_dparam_true = torch.cat(du_dparam_true_list, dim=0)
+# In[15]:
+# RMSE_Grads = torch.zeros(4)  # Assuming RMSE for each component, storing in a tensor
+# R2_Grads = torch.zeros(4)  # Storing R² for each component
 
-torch.save(U_pred, label+'_u.pt')
-torch.save(du_dp, label+'_g.pt')
-RMSE_Grads = torch.zeros(4)  # Assuming RMSE for each component, storing in a tensor
-R2_Grads = torch.zeros(4)  # Storing R² for each component
+# for i in range(4):
+#     predictions = du_dp[:, :, :, i, 0].cpu().detach()
+#     true_values = du_dparam_true[:, :, T_in:, i, 0].cpu().detach()
+#     RMSE_Grads[i] = calculate_rmse(predictions, true_values)
+#     R2_Grads[i] = calculate_r2(predictions, true_values)
 
-for i in range(4):
-    predictions = du_dp[:, :, :, i, 0].cpu().detach()
-    true_values = du_dparam_true[:, :, T_in:, i, 0].cpu().detach()
-    RMSE_Grads[i] = calculate_rmse(predictions, true_values)
-    R2_Grads[i] = calculate_r2(predictions, true_values)
+# RMSE_U = calculate_rmse(U_pred, batch_u_out)
+# R2_U = calculate_r2(U_pred, batch_u_out)
+# print(f'Mode:{label}')
 
-RMSE_U = calculate_rmse(U_pred, batch_u_out)
-R2_U = calculate_r2(U_pred, batch_u_out)
-print(f'Mode:{label}')
+# print(f'R2 state value :{R2_U:.5f}')
+# for i in range(4):
+#     print(f'R2 du/dp{i+1}: {R2_Grads[i].item():.5f}')
+parameter_size = 4
+RMSE_Grads = torch.zeros(parameter_size)
+R2_Grads = torch.zeros(parameter_size)  
+L2_Grads = torch.zeros(parameter_size)
+RelL2_Grads = torch.zeros(parameter_size) 
+MaxL1_Grads = torch.zeros(parameter_size)
 
-print(f'R2 state value :{R2_U:.5f}')
-for i in range(4):
-    print(f'R2 du/dp{i+1}: {R2_Grads[i].item():.5f}')
+for i in range(parameter_size):
+   predictions = du_dp[:, :, :, i, 0].cpu().detach()
+   true_values = du_dparam_true[:, :, T_in:, i, 0].cpu().detach()
+   RMSE_Grads[i], R2_Grads[i], L2_Grads[i], RelL2_Grads[i], MaxL1_Grads[i] = calculate_metrics(predictions, true_values)
+
+RMSE_U, R2_U, L2_U, RelL2_U, MaxL1_U = calculate_metrics(U_pred, batch_u_out)
+
+# Calculate mean metrics for Jacobian
+mean_R2 = torch.mean(R2_Grads)
+mean_RMSE = torch.mean(RMSE_Grads)
+mean_L2 = torch.mean(L2_Grads)
+mean_RelL2 = torch.mean(RelL2_Grads)
+mean_MaxL1 = torch.mean(MaxL1_Grads)
+
+print(f"\n{'='*50}")
+print(f"Mode: {Mode}")
+print(f"{'='*50}")
+
+print("\nState Value Metrics:")
+print(f"{'='*20}")
+print(f"R²      : {R2_U:.5f}")
+print(f"RMSE    : {RMSE_U:.5f}")
+print(f"L2      : {L2_U:.5f}")
+print(f"Rel L2  : {RelL2_U:.5f}")
+print(f"Max L1  : {MaxL1_U:.5f}")
+
+print("\nMean Jacobian Metrics:")
+print(f"{'='*20}")
+print(f"R²      : {mean_R2:.5f}")
+print(f"RMSE    : {mean_RMSE:.5f}")
+print(f"L2      : {mean_L2:.5f}")
+print(f"Rel L2  : {mean_RelL2:.5f}")
+print(f"Max L1  : {mean_MaxL1:.5f}")
+
+print("\nJacobian Metrics by Parameter:")
+print(f"{'='*20}")
+for i in range(parameter_size):
+   print(f"\nParameter {i+1}:")
+   print(f"R²      : {R2_Grads[i]:.5f}")
+   print(f"RMSE    : {RMSE_Grads[i]:.5f}")
+   print(f"L2      : {L2_Grads[i]:.5f}")
+   print(f"Rel L2  : {RelL2_Grads[i]:.5f}")
+   print(f"Max L1  : {MaxL1_Grads[i]:.5f}")
+print(f"\n{'='*50}\n")
 
 # In[15]:
 # t_tensor_ = torch.linspace(t0, t_end, step_save)

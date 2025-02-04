@@ -32,19 +32,21 @@ Operator = 'FNO'
 MHPI()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(f'Device: {device}\n')
-PATH = "fno_pde/PDEs/PDE1/"
-# PATH = "../"
+# PATH = "fno_pde/PDEs/PDE1/"
+PATH = "../"
 
-parser = argparse.ArgumentParser(description='Your script description')
-parser.add_argument('--enable_ig_loss', type=lambda x: x.lower() == 'true', 
-                    choices=[True, False], default=False,
-                    help='Enable IG loss (True/False, default: False)')
-args = parser.parse_args()
-enable_ig_loss = args.enable_ig_loss
-# enable_ig_loss = False
+# parser = argparse.ArgumentParser(description='Your script description')
+# parser.add_argument('--enable_ig_loss', type=lambda x: x.lower() == 'true', 
+#                     choices=[True, False], default=True,
+#                     help='Enable IG loss (True/False, default: False)')
+# args = parser.parse_args()
+# enable_ig_loss = args.enable_ig_loss
 
 
-enable_eq_loss = False
+enable_ig_loss = True
+enable_eq_loss = True
+
+
 plot_live_loss = False
 
 t0 = 0.0
@@ -67,15 +69,15 @@ scheduler_gamma = 0.9
 
 
 if (enable_ig_loss == False):
-    Mode = Operator + "_Data"
+    Mode = Operator + "_Data_test"
     ss = 1
 # Data + IG
 if (enable_ig_loss == True):
-    Mode = Operator + "_Data_IG" 
+    Mode = Operator + "_Data_IG_test" 
     ss = 1 + 6
 
 print(f'Mode: {Mode}\n')
-
+ss= 8
 # %%
 L = 1.0
 dx = 0.05
@@ -144,8 +146,8 @@ for ep in outer_loop:
         eq_loss = criterion_1(residuals_eq, torch.zeros_like(residuals_eq))
         
         
-        num_samples_x = 12  # Number of random samples along the second axis (x)
-        num_samples_t = 15  # Number of random samples along the third axis (t)
+        num_samples_x = 8  # Number of random samples along the second axis (x)
+        num_samples_t = 8  # Number of random samples along the third axis (t)
 
         # Assuming U_pred.shape is (N, X, T, C)
         N, X, T, C = U_pred.shape
@@ -241,22 +243,20 @@ for ep in outer_loop:
 
     losses_dict = {'Training Data Loss': train_fnolosses, 'Training IG Loss': train_iglosses, 'Validation Loss': val_losses}
     df = pd.DataFrame(losses_dict)
-    
-    if ep % 5 == 0:
-        torch.save({
-            'epoch': ep,
-            'modes1': modes1,
-            'modes2':modes2,
-            'width': width,
-            'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
-            'loss': loss,
-        }, PATH + 'saved_models/' + Mode + '_saved_model.pth')
-        df.to_excel(PATH + 'loss/' + f'losses_data_{Mode}_.xlsx', index=True, engine='openpyxl')   
+    # if ep % 5 == 0:
+    #     torch.save({
+    #         'epoch': ep,
+    #         'modes1': modes1,
+    #         'modes2':modes2,
+    #         'width': width,
+    #         'model_state_dict': model.state_dict(),
+    #         'optimizer_state_dict': optimizer.state_dict(),
+    #         'loss': loss,
+    #     }, PATH + 'saved_models/' + Mode + '_saved_model.pth')
+    #     df.to_excel(PATH + 'loss/' + f'losses_data_{Mode}_.xlsx', index=True, engine='openpyxl')   
         
-        if plot_live_loss:
-            loss_live_plot(losses_dict)  # Update the live plot after each epoch
-
+    #     if plot_live_loss:
+    #         loss_live_plot(losses_dict)  # Update the live plot after each epoch
     scheduler.step()
     outer_loop.set_description(f"{Mode} Progress (Epoch {ep + 1}/{epochs})")
     outer_loop.set_postfix(fnoloss=f'{epoch_fnoloss:.2e}', ig_loss=f'{epoch_igloss:.2e}', eval_loss=f'{epoch_val_loss:.2e}')
