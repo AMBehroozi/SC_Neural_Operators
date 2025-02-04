@@ -1,4 +1,4 @@
 .gitignore
-/data/amb10399/Project/SC_Neural_Operators/fno_pde/PDEs/PDE1/loader
-/data/amb10399/Project/SC_Neural_Operators/fno_pde/PDEs/PDE4/loader
-/data/amb10399/Project/SC_Neural_Operators/fno_pde/PDEs/PDE6/loader
+fno_pde/PDEs/PDE1/loader
+fno_pde/PDEs/PDE4/loader
+fno_pde/PDEs/PDE6/loader
