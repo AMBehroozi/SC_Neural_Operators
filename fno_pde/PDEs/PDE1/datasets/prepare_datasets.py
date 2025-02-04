@@ -28,8 +28,6 @@ eval_size = 150
 test_size = Sample_number - train_size - eval_size
 dataset_segment_size = 100
 
-
-
 t0 = 0.0
 t_end = torch.pi
 steps_solve = 210
