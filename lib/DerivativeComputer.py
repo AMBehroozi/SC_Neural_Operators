@@ -208,6 +208,20 @@ def compute_derivative_t(u, t, device):
 
 
 def batchJacobian_AD(y, x, graphed=False, batchx=True):
+    # extract the jacobian dy/dx for multi-column y output (and with minibatch)
+    # compared to the scalar version above, this version will call grad() ny times in parallel and store outputs in a tensor matrix
+    # if batchx=True:
+    #    y: [nb, ny]; x: [nb, nx]. x could also be a tuple or list of tensors. ---> Jac: [nb,ny,nx] # assuming batch elements have nothing to do with each other
+    # if batchx=Flase:
+    #    y: [nb, ny]; x: [nx]. x could also be a tuple or list of tensors. --> Jac: [nb,ny,nx]
+    # permute and view your y to be of the above format.
+    # AD jacobian is not free and may end up costing lots of time
+    # output: Jacobian [nb, ny, nx] # will squeeze after the calculation
+    # relying on the fact that the minibatch has nothing to do with each other!
+    # if they do, i.e, they come from different time steps of a simulation, you need to put them in second dim in y!
+    # view or reshape your x and y to be in this format if they are not!
+    # pay attention, this operation could be expensive.
+
     import sourcedefender
     import ad_jac
     import torch
