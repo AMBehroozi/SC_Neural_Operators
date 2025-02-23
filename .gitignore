@@ -1,2 +1,4 @@
 .gitignore
 fno_pde/PDEs/**/loader/
+/storage/work/amb10399/temp/SC_Neural_Operators/fno_ode /ode_FNO_IG_EQ_auto_loss.py
+/storage/work/amb10399/temp/SC_Neural_Operators/lib/batchJacobian.pye______Trush

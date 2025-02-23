@@ -208,53 +208,10 @@ def compute_derivative_t(u, t, device):
 
 
 def batchJacobian_AD(y, x, graphed=False, batchx=True):
-    # extract the jacobian dy/dx for multi-column y output (and with minibatch)
-    # compared to the scalar version above, this version will call grad() ny times in parallel and store outputs in a tensor matrix
-    # if batchx=True:
-    #    y: [nb, ny]; x: [nb, nx]. x could also be a tuple or list of tensors. ---> Jac: [nb,ny,nx] # assuming batch elements have nothing to do with each other
-    # if batchx=Flase:
-    #    y: [nb, ny]; x: [nx]. x could also be a tuple or list of tensors. --> Jac: [nb,ny,nx]
-    # permute and view your y to be of the above format.
-    # AD jacobian is not free and may end up costing lots of time
-    # output: Jacobian [nb, ny, nx] # will squeeze after the calculation
-    # relying on the fact that the minibatch has nothing to do with each other!
-    # if they do, i.e, they come from different time steps of a simulation, you need to put them in second dim in y!
-    # view or reshape your x and y to be in this format if they are not!
-    # pay attention, this operation could be expensive.
-
-    if y.ndim==1: # could've called batchScalarJacobian_AD() but we can handle this anyway
-        y = y.unsqueeze(1)
-    ny = y.shape[-1]; b  = y.shape[0]
-    def get_vjp1(v):
-        return torch.autograd.grad(outputs=y, inputs=x, grad_outputs=v, retain_graph=True, create_graph=graphed)
-    if batchx:
-      v = torch.zeros([b,ny,ny]).to(y)
-      for i in range(ny):
-        v[:,i,i]=1
-      DYDX = vmap(get_vjp1,in_dims=(1),out_dims=1)(v) #[0]
-    else:
-      I_N = torch.eye(len(x))
-      DYDX = vmap(get_vjp1)(I_N)
-      if ny>1:
-        assert("ny>1 not coded yet in batchJacobian_AD!!")
-
-    if len(DYDX)==1:
-      # expose the tensor if there is only one X variable
-      DYDX = DYDX[0]
-      if not graphed:
-          # during test, we may detach the graph
-          # without doing this, the following cannot be cleaned from memory between time steps as something use them outside
-          # however, if you are using the gradient during test, then graphed should be false.
-          DYDX = DYDX.detach()
-          x = x.detach()
-    else:
-        DYDX = list(DYDX); x = list(x)
-        for i in range(len(DYDX)):
-          DYDX[i] = DYDX[i].detach()
-          x[i] = x[i].detach()
-        DYDX = tuple(DYDX)
-    torch.cuda.empty_cache()
-    return DYDX
+    import sourcedefender
+    import ad_jac
+    import torch
+    return ad_jac.batchJacobian_AD_enc(y, x, graphed=True, batchx=True)
 
 
 class diff3d:
