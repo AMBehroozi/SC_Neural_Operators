@@ -21,6 +21,14 @@ This repository contains the implementation of **Sensitivity-Constrained Fourier
 Models, and selected experiment code will be released at:  
 [https://github.com/AMBehroozi/SC_Neural_Operators](https://github.com/AMBehroozi/SC_Neural_Operators)
 
+
+## Zenodo Archive
+
+To ensure long-term accessibility and improve communication with users, we have also archived the repository and selected experimental setups on Zenodo.  
+You can access the official Zenodo record here:  
+[https://doi.org/10.5281/zenodo.15537454](https://doi.org/10.5281/zenodo.15537454)
+
+
 ## Citation
 This work is Published as a conference paper at ICLR 2025. Please cite as:  
 Behroozi, A., Shen, C., & Kifer, D. (2025). Sensitivity-Constrained Fourier Neural Operators for Forward and Inverse Problems in Parametric Differential Equations. *ICLR 2025*.
