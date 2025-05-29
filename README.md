@@ -17,10 +17,6 @@ This repository contains the implementation of **Sensitivity-Constrained Fourier
 - **Daniel Kifer** (duk17@psu.edu)  
   School of Electrical Engineering and Computer Science, Penn State University  
 
-## Code and Models
-Models, and selected experiment code will be released at:  
-[https://github.com/AMBehroozi/SC_Neural_Operators](https://github.com/AMBehroozi/SC_Neural_Operators)
-
 
 ## Zenodo Archive
 
