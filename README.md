@@ -1,3 +1,9 @@
+## Note 📝 
+
+To ensure long-term accessibility and improve communication with users, we have also archived the repository and selected experimental setups on Zenodo.  
+You can access the official Zenodo record here:  
+[https://doi.org/10.5281/zenodo.15537454](https://doi.org/10.5281/zenodo.15537454)
+
 # Sensitivity-Constrained Fourier Neural Operators (SC-FNO)
 
 ## Overview
@@ -17,12 +23,6 @@ This repository contains the implementation of **Sensitivity-Constrained Fourier
 - **Daniel Kifer** (duk17@psu.edu)  
   School of Electrical Engineering and Computer Science, Penn State University  
 
-
-## Zenodo Archive
-
-To ensure long-term accessibility and improve communication with users, we have also archived the repository and selected experimental setups on Zenodo.  
-You can access the official Zenodo record here:  
-[https://doi.org/10.5281/zenodo.15537454](https://doi.org/10.5281/zenodo.15537454)
 
 
 ## Citation
