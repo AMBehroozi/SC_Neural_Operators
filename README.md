@@ -18,9 +18,9 @@ This repository contains the implementation of **Sensitivity-Constrained Fourier
 ## Authors
 - **Abdolmehdi Behroozi** (amb10399@psu.edu)  
   Department of Civil and Environmental Engineering, Penn State University  
-- **Chaopeng Shen** (Corresponding author, cxs1024@psu.edu)  
+- **Chaopeng Shen**  
   Department of Civil and Environmental Engineering, Penn State University  
-- **Daniel Kifer** (duk17@psu.edu)  
+- **Daniel Kifer**  
   School of Electrical Engineering and Computer Science, Penn State University  
 
 
